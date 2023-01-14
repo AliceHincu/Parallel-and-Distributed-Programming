@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="335677d4-1cac-4ce2-ad62-a2bfd231ae37" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/lab1/src/Problem3/Node.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab1/src/Problem3/Notification.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab1/src/Problem3/Tree.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab2/src/Domain/Vector.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab2/src/Threads/ConsumerThread.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab2/src/Threads/DataQueue.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab2/src/Threads/ProducerThread.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab3/src/approaches/NormalThreadRunner.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab3/src/approaches/Runner.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab3/src/approaches/ThreadPoolRunner.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab3/src/domain/Matrix.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab3/src/threads/ColTask.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab3/src/threads/KTask.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab3/src/threads/MatrixTask.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab3/src/threads/RowTask.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab5/src/algorithms/KaratsubaAlgoParallelizedForm.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab5/src/algorithms/KaratsubaAlgoSequentialForm.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab5/src/algorithms/RegularAlgoParallelizedForm.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab5/src/algorithms/RegularAlgoSequentialForm.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab5/src/domain/BigNumber.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab5/src/domain/Polynomial.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab5/src/domain/PolynomialTask.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab6/src/domain/DirectedGraph.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab6/src/domain/Task.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/domain/BigNumber.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/domain/Operation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/domain/Polynomial.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/domain/PolynomialTask.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/mpi/Master.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/mpi/MasterBigNumbers.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/mpi/MasterPolynomial.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/mpi/Worker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/mpi/WorkerBigNumbers.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/mpi/WorkerKaratsuba.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lab7/src/mpi/WorkerSimple.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2Js7OqW7rWy6uIEZU7O7FKZb0xS" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;
+  }
+}</component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="335677d4-1cac-4ce2-ad62-a2bfd231ae37" name="Changes" comment="" />
+      <created>1672854914660</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1672854914660</updated>
+      <workItem from="1672854923204" duration="46000" />
+      <workItem from="1672940233434" duration="22000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

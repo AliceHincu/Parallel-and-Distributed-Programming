@@ -1,0 +1,4 @@
+﻿  Source1.cpp
+C:\Users\Alexandra Murariu\Downloads\RaulBurian PPD master LabOpenCL\LabOpenCL\Source1.cpp(77,21): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Alexandra Murariu\Downloads\RaulBurian PPD master LabOpenCL\LabOpenCL\Source1.cpp(127,21): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  LabOpenCL.vcxproj -> C:\Users\Alexandra Murariu\Downloads\RaulBurian PPD master LabOpenCL\x64\Debug\LabOpenCL.exe
