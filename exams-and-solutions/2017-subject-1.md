@@ -4,7 +4,7 @@
 ## Solution
 k = number of colors, n = number of nodes.
 
-The maximum number of combinations is k^n, so we will have numbers in the interval x ∈ [0, k^n - 1]. We will map every possible coloring of the graph "x" to a number in base k. 
+The maximum number of combinations of colors is k^n, so we will have numbers in the interval x ∈ [0, k^n - 1]. We will map every possible coloring "x" of the graph to a number in base k, which represents a possible solution. 
 - So if k = 3 and n = 4 => x ∈ [0, 80] . 
 - For x = 11 (in base 10) = 1020 (in base 3) is a valid solution for a graph that doesn't have an edge between the second node and last node. 
 - This will be done in a method named "to_color(x)".
