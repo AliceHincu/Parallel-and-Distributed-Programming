@@ -76,3 +76,50 @@ And here is the method in main:
         return null;
     }
 ```
+
+# Exercise 2
+(2.5p) Consider the following code for inserting a new value into a linked list at a given position. We assume that insertions can be called concurrently, but not for the same position. Find and fix the concurrency issue. Also, describe a function for parsing the linked list.
+
+```java
+struct Node {
+    unsigned payload;
+    Node* next;
+    Node* prev;
+    mutex mtx;
+};
+
+void insertAfter(Node* before, unsigned value) {
+    Node* node = new Node;
+    node->payload = value;
+    Node* after = before->next;
+    before->mtx.lock();
+    before->next = node;
+    before->mtx.unlock();
+    after->mtx.lock();
+    after->prev = node;
+    after->mtx.unlock();
+    node->prev = before;
+    node->next = after;
+}
+```
+
+## Solution
+**The concurrency issue** in this code is that the two calls to lock() on the "before" and "after" nodes may not provide mutual exclusion. If two threads simultaneously call insertAfter() for different "before" nodes, but the "after" node for one of these "before" nodes is the same as the "before" node for the other, then both threads could concurrently modify the same "after" node, leading to a race condition.
+
+Here is an example that illustrates this concurrency issue:
+
+``` java
+// the list A -> B
+thread1:
+  insertAfter(nodeA, x);
+thread2:
+  insertAfter(nodeA->next, y);
+```
+  
+We would accept the following two cases:
+- if the first thread is the one to lock B, then:
+    - A → x → B and after we will obtain ```A → x → y → B```
+- if the second thread locks B, then:
+    - A → B → y and after we will obtain ```A → x → B → y```
+
+But this can also happen ```A → x → B```, which is not correct 
