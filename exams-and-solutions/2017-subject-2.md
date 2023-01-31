@@ -27,7 +27,7 @@ bool transfer(Account& from, Account& to, unsigned amount) {
 ```
   
 ## Solution
-In c++, ```unique_lock``` guarantees an unlocked status on destruction (even if not called explicitly). So because there are 2 scopes inside the function, the first lock is released after the amount was thaken from the first balance, and the second lock is released after the amouns is thransfered to the second balance. So, **the implementation of the transfer function is thread-safe**, as the unique_locks ensure mutual exclusion for the two accounts being transferred between.
+In c++, ```unique_lock``` guarantees an unlocked status on destruction (even if not called explicitly). So because there are 2 scopes inside the function, the first lock is released after the amount was taken from the first balance, and the second lock is released after the amount is transfered to the second balance. So, **the implementation of the transfer function is thread-safe**, as the unique_locks ensure mutual exclusion for the two accounts being transferred between.
   
 The problem appears when we want to have the sum. If we want to compute the sum, it may be the case that the amount is taken out of an account, but not yet added to the other one, such that some amount is lost from the entire sum.
 - for example, we have account1, account2 and account3. We have a transfer from account1 to account3. The money from the first account is taken, the sum is computed, then the money is transfered to account3. =>  balance discrepancy. We need to lock the two nodes simultaneously
