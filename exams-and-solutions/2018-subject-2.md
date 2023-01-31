@@ -77,6 +77,38 @@ The code has a thread-safety issue because multiple threads can access the share
 - Otherwise, simply add a mutex so that only one method can be called at a time.
   - A thread-safety issue in the code occurs because the method set and addContinuation can be called simultaneously from multiple threads. For example, one thread might be setting the value while another thread is adding a continuation to the list. This can lead to a race condition where the list of continuations is being modified by multiple threads at the same time, potentially causing data corruption or undefined behavior.
 
+``` cpp
+template<typename T>
+class Future {
+        list<function<void(T)>> continuations;
+        T val;
+        bool has_value;
+        mutex mtx;
+    public:
+        Future(): has_value(false) {}
+        void set(T v) {
+                {
+                        unique_lock<mutex> lck(mtx); // lock so you can modify
+                        val = v;
+                        has_value = true;
+                }
+                for(function<void(T)>& f: continuations) {
+                        f(v);
+                }
+                continuations.clear();
+        }
+        void addContinuation(function<void(T)> f) {
+                  unique_lock<mutex> lck(mtx);
+                  if(has_value) {
+                    f(val);
+                  } else {
+                    continuations.push_back(f);
+                  }
+                }
+        }
+ }
+```
+
 # Exercise 3
 (3p) Write a parallel algorithm that computes the product of two matrices.
 
