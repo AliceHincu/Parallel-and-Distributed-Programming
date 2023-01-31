@@ -1,6 +1,8 @@
 # Exercise 2
 Consider the following code for a queue with multiple producers and consumers
+
 a. (1.5p) Identify and fix the concurrency issue(s)
+
 b. (2p) Create a mechanism for blocking the producer so that the producers are blocked on enqueue if the number of items in the queue reaches a fixed value (say, 100)
 
 ```cpp
@@ -46,6 +48,7 @@ Here's a step-by-step example of a data race in the given code:
 - Another consumer thread acquires a lock on mtx to retrieve the item that was just added.
 - The first consumer thread returns the item that was popped, leading to an unexpected result, because it was not aware of the item that was added in step 6.
 - This is an example of a data race, because the same shared data (items) is being accessed by multiple threads simultaneously, leading to unexpected results.
+
 Basically:
 - p1 -> enqueue(v)
 - c1-> done with waiting and acquires lock again
@@ -81,6 +84,38 @@ public:
       lock_guard<mutex> lck(mtx);
       items.push_back(v);
     }
+    cv.notify_one();
+  }
+  
+  T dequeue() {
+    unique_lock<mutex> lck(mtx);
+    while(items.empty()) { // wait for items to have an element
+      cv.wait(lck);
+    }
+    T ret = items.front();
+    items.pop_front();
+    return ret;
+  }
+};
+```
+
+b.
+In this version, the ProducerConsumerQueue class has an additional constructor parameter, ```max_items```, which represents the maximum number of items allowed in the queue. The enqueue() function uses cv.wait() with a lambda function as the second argument to block the producer if the number of items in the queue is equal to max_items. This will prevent the producer from adding more items to the queue until the consumer has removed some elements. The consumer can continue to remove items as usual.
+
+``` cpp
+template <typename T>
+class ProducerConsumerQueue {
+  list<T> items;
+  condition_variable cv;
+  mutex mtx;
+  const size_t max_items;
+public:
+  ProducerConsumerQueue(size_t max) : max_items(max) {}
+  
+  void enqueue(T v) {
+    unique_lock<mutex> lck(mtx);
+    cv.wait(lck, [this] { return items.size() < max_items; });
+    items.push_back(v);
     cv.notify_one();
   }
   
