@@ -79,13 +79,13 @@ void computeOneElement(
 ```
 
 Select one or more:
-- [issue-A] The result may be incorrect because of race conditions between the concurrent threads
+- **[issue-A] The result may be incorrect because of race conditions between the concurrent threads**
 - [issue-A] There is essentially no parallelism because no two threads can access the polynomials at the same time
-- [issue-B] There are elements of the output polynomial that are not computed
+- **[issue-B] There are elements of the output polynomial that are not computed**
 - [issue-B] There are elements of the output polynomial that are computed twice
 - [issue-B] The program will attempt to access non-existent elements
-- [fix-A] Make the output polynomial ```std::vector<std::atomic<int>>```
-- [fix-A] Replace statement 1 with ```rez[idx] += p[idx]*q[i]``` with appropiate changes on the iteration limits on i and idx
+- **[fix-A] Make the output polynomial ```std::vector<std::atomic<int>>```**
+- **[fix-A] Replace statement 1 with ```rez[idx] += p[idx]*q[i]``` with appropiate changes on the iteration limits on i and idx**
 - [fix-B] In statement 2 put ```step = (p.size()+nrThreads-1)/nrThreads```
 - [fix-B] After statement 3 add ```if(end>p.size()) end=p.size()```
-- [fix-B] In statement 2 put ```step=(p.size()+nrThreads-1)/nrThreads``` and after statement 3 add ```if(end>p.size()) end = p.size()```
+- **[fix-B] In statement 2 put ```step=(p.size()+nrThreads-1)/nrThreads``` and after statement 3 add ```if(end>p.size()) end = p.size()```**
