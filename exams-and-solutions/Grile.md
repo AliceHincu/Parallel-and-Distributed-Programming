@@ -161,6 +161,19 @@ Select one or more:
 - **[fix-B] After statement 2 add if(end>a.size()) end=a.size()**
 - [fix-B] In statement 1 put step = outNrRows/nrThreads and after statement 2 add if(end>a.size()) end=a.size()
 
+# Producer consumer queue
+- [f] remove line 18 and insert copies of it in lines 21-22 and 23-24
+- [i] a call to dequeue() can result data corruption or undefined behavior if simultaneous with the call to enqueue()
+
+# Future continuations
+- simultaneous calls to addContinuation() and set() may lead to continuations that are never executed
+-  to solve all concurrency issues, one has to move both the content of line 12 to between lines 9 and 10 and the content of line 22 to between lines 18 and 19
+
+# Scalar product
+- some of the terms are not added into the final sum
+- there are some concurrency issues requiring the use of mutexes or atomic variables
+- to solve issues, one could replace line 10 with int end = begin + (a.size()-begin)/(nrThreads-i)
+
 # Merge Sort
 Consider the following excerpt from a program that is supposed to merge-sort a vector. The function **worker()** is called in all processes except process 0, the function mergeSort() is called from process 0 (and from the places described in this excerpt), the function mergeSortLocal() sorts the specified vector and the function mergeParts() merges two sorted adjacent vectors, given the pointer to the first element, the total lengthand the length of the first vector.
 
@@ -193,10 +206,12 @@ void worker(int myId) {
 }
 ```
 
-Which of the following issues are present? Describe the changes needed to solve them.
-a. the application can deadlock if the length of the vector is smaller than the number of MPI processes.
-b. the application can produce a wrong result if the input vector size is not a power of 2.
-**c. some worker processes are not used if the number of processes is not a power of 2.**
-d. the application can deadlock if the number of processes is not a power of 2.
+Which of the following issues are present? Describe the changes needed to solve them?
+- the application can deadlock if the length of the vector is smaller than the number of MPI processes.
+- the application can produce a wrong result if the input vector size is not a power of 2.
+- **some worker processes are not used if the number of processes is not a power of 2.**
+- the application can deadlock if the number of processes is not a power of 2.
 
 c. Yes, some worker processes may not be used if the number of processes is not a power of 2. The algorithm is designed to divide the input vector into two equal parts and distribute the work among the worker processes accordingly. If the number of processes is not a power of 2, it is not possible to divide the input vector into two equal parts, which means that some worker processes may not receive any work to do. This can lead to an inefficient use of the available processing resources, as some worker processes will remain idle. To avoid this issue, it may be necessary to modify the algorithm or the process distribution to ensure that all worker processes are used effectively, regardless of the number of processes used.
+
+
