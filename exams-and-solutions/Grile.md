@@ -39,6 +39,53 @@ d. the application can deadlock if the number of processes is not a power of 2.
 c. Yes, some worker processes may not be used if the number of processes is not a power of 2. The algorithm is designed to divide the input vector into two equal parts and distribute the work among the worker processes accordingly. If the number of processes is not a power of 2, it is not possible to divide the input vector into two equal parts, which means that some worker processes may not receive any work to do. This can lead to an inefficient use of the available processing resources, as some worker processes will remain idle. To avoid this issue, it may be necessary to modify the algorithm or the process distribution to ensure that all worker processes are used effectively, regardless of the number of processes used.
 
 # Polynomial Product
-```cpp
+``` cpp
+void computeOneElement(
+    std::vector<std::vector<int>> const& p,
+    std::vector<std::vector<int>> const& q,
+    size_t idx,
+    std::vector<int>& rez)
+ {
+    for(size_t i=0; i<q.size(); ++i) {
+      rez[idx+i] += p[idx]*q[i];   // statement 1
+    }
+ }
+ 
+ std::vector<int> polynomialProduct(
+    std::vector<int> const& p,
+    std::vector<int> const& q,
+    size_t nrThreads)
+ {
+    std::vector<int> rez(p.size()+q.size()-1);
+    size_t begin = 0;
+    size_t step = p.size()/nrThreads;   // statement 2
+    std::vector<std::thread> threads;
+    threads.reserve(nrThreads);
 
+    for(size_t th=0; th<nrThreads; ++th) {
+      size_t end = begin+step;    // statement 3
+      threads.emplace_back([begin, end, &p, &q, &rez]() {
+        for(size_t i=begin; i<end; ++i) {
+          computeOneElement(p, q, i, rez);
+        }
+      });
+      begin = end;
+    }
+    for(std::thread& th : threads) {
+      th.join();
+    }
+    return rez;
+ };
 ```
+
+Select one or more:
+- [issue-A] The result may be incorrect because of race conditions between the concurrent threads
+- [issue-A] There is essentially no parallelism because no two threads can access the polynomials at the same time
+- [issue-B] There are elements of the output polynomial that are not computed
+- [issue-B] There are elements of the output polynomial that are computed twice
+- [issue-B] The program will attempt to access non-existent elements
+- [fix-A] Make the output polynomial ```std::vector<std::atomic<int>>```
+- [fix-A] Replace statement 1 with ```rez[idx] += p[idx]*q[i]``` with appropiate changes on the iteration limits on i and idx
+- [fix-B] In statement 2 put ```step = (p.size()+nrThreads-1)/nrThreads```
+- [fix-B] After statement 3 add ```if(end>p.size()) end=p.size()```
+- [fix-B] In statement 2 put ```step=(p.size()+nrThreads-1)/nrThreads``` and after statement 3 add ```if(end>p.size()) end = p.size()```
