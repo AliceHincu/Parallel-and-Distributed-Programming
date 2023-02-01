@@ -85,7 +85,7 @@ What kind of concurrency issue does it present? How to fix them?
 - [issue] simultaneous calls to get() and set() can make future calls to get() deadlock
 - [issue] a call to get() can deadlock if called after set()
 - **[issue] a call to get() can deadlock if called before set()**
-- **[issue] a call to get() can deadlock if simultaneous with the call to set() **
+- **[issue] a call to get() can deadlock if simultaneous with the call to set()**
 - **[fix] a possible fix is to put in the order statement 2, statement 4, statement 3, and statement 1 those four lines**
 - [fix] a possible fix is to unlock the mutex just before line marked statement 5 and to lock it back just afterwards
 - [fix] a possible fix is to remove the line marked statement 2 (for Java: together with its corresponding mtx.unlock() )
@@ -95,6 +95,7 @@ What kind of concurrency issue does it present? How to fix them?
 # Matrices Product
 Consider the following code for computing the product of two matrices (assuming the number of columns of a is equal to the number of rows of b).
 
+```cpp
 void computeOneElement(
     std::vector<std::vector<int>> const& a,
     std::vector<std::vector<int>> const& b,
@@ -143,6 +144,7 @@ void computeOneElement(
     }
     return rez;
  };
+ ```
  
 Identify the issues with this code and how to fix them (fixes marked fix-A are to be considered only as far as the issues marked issue-A are concerned, and similarly for B)
 
