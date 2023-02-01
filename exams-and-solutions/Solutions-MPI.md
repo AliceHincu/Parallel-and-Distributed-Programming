@@ -1,4 +1,5 @@
 1. [Permutations](#permutations)  
+2. [Primes](#primes)
 
 
 # Permutations
@@ -97,5 +98,90 @@ public void run(String[] args) throws FileNotFoundException {
         worker(n, selfRank, numberOfProcesses);
     }
     MPI.Finalize();
+}
+```
+
+# Primes
+Write in java using MPI a program that computes all prime numbers up to N. The first process shall distribute to all others the list of primes up to sqrt(N), then each of the processes shall take its fair share of the interval from sqrt(N) to N, check all the numbers there, and send the primes to process 0.
+
+``` java
+public static void main(String[] args) {
+    MPI.Init(args);
+    int selfRank = MPI.COMM_WORLD.Rank();
+    int numberOfProcesses = MPI.COMM_WORLD.Size();
+    int n = 100;
+    if (selfRank == 0) {
+        master(n, numberOfProcesses);
+    } else {
+        worker(n, numberOfProcesses, selfRank);
+    }
+    MPI.Finalize();
+}
+
+private static boolean checkForPrime(int inputNumber) {
+    if (inputNumber <= 1)
+        return false;
+    for (int i = 2; i <= inputNumber / 2; i++)
+        if ((inputNumber % i) == 0)
+            return false;
+
+    return true;
+}
+
+private static void master(int n, int numberOfProcesses) {
+    List<Integer> primes = new ArrayList<>();
+    int sqr = (int) Math.sqrt(n);
+    for (int i = 1; i <= sqr; i++)
+        if (checkForPrime(i)) primes.add(i);
+
+    int nrWorkers = numberOfProcesses - 1;
+    for (int i = 1; i <= nrWorkers; i++) {
+        MPI.COMM_WORLD.Send(new int[]{primes.size()}, 0, 1, MPI.INT, i, 0); // send length of array
+        for (Integer prime : primes)
+            MPI.COMM_WORLD.Send(new int[]{prime}, 0, 1, MPI.INT, i, 0); // send each element
+    }
+
+    int[] size = new int[1];
+    int[] number = new int[1];
+    for (int i = 1; i <= nrWorkers; i++) {
+        MPI.COMM_WORLD.Recv(size, 0, 1, MPI.INT, i, 0);
+        for (int j = 0; j < size[0]; j++) {
+            MPI.COMM_WORLD.Recv(number, 0, 1, MPI.INT, i, 0);
+            primes.add(number[0]);
+        }
+    }
+
+    System.out.println(primes);
+}
+
+private static void worker(int n, int numberOfProcesses, int me) {
+    System.out.printf("Worker %d started\n", me);
+
+    int[] size = new int[1];
+    int[] number = new int[1];
+
+    MPI.COMM_WORLD.Recv(size, 0, 1, MPI.INT, 0, 0);
+
+    for (int i = 0; i < size[0]; i++) {
+        MPI.COMM_WORLD.Recv(number, 0, 1, MPI.INT, 0, 0);
+    }
+
+    int nrWorkers = numberOfProcesses - 1;
+    int sqrtN = (int) Math.sqrt(n);
+    int chunkSize = (n - sqrtN + 1) / nrWorkers;
+    int start = sqrtN + (me - 1) * chunkSize + 1;
+    int end = start + chunkSize;
+    if (end > n) end = n;
+
+    List<Integer> primes = new ArrayList<>();
+    for(int i=start; i<=end; i++){
+        if(checkForPrime(i))
+            primes.add(i);
+    }
+
+    System.out.println(primes);
+    MPI.COMM_WORLD.Send(new int[]{primes.size()}, 0, 1, MPI.INT, 0, 0); // send length of array
+    for (Integer prime : primes)
+        MPI.COMM_WORLD.Send(new int[]{prime}, 0, 1, MPI.INT, 0, 0); // send each element
 }
 ```
