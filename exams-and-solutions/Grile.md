@@ -92,6 +92,73 @@ What kind of concurrency issue does it present? How to fix them?
 - [fix] a possible fix is to interchange lines marked statement 3 and statement 4
 - **[fix] a possible fix is to interchange lines marked statement 1 and statement 2**
 
+# Matrices Product
+Consider the following code for computing the product of two matrices (assuming the number of columns of a is equal to the number of rows of b).
+
+void computeOneElement(
+    std::vector<std::vector<int>> const& a,
+    std::vector<std::vector<int>> const& b,
+    size_t row, size_t col,
+    std::vector<std::vector<int>>& rez,
+    std::mutex& mtx)
+ {
+    mtx.lock();
+    int sum = 0;
+    for(size_t i=0; i<b.size(); ++i) {
+      sum += a[row][i] * b[i][col];
+    }
+    rez[row][col] = sum;
+    mtx.unlock();
+ }
+ 
+ std::vector<std::vector<int>> matrixProd(
+    std::vector<std::vector<int>> const& a,
+    std::vector<std::vector<int>> const& b,
+    size_t nrThreads)
+ {
+    std::mutex mtx;
+    size_t outNrRows = a.size();
+    size_t outNrCols = b[0].size();
+    std::vector<std::vector<int>> rez(outNrRows);
+    for(std::vector<int>& row: rez) {
+      row.resize(outNrCols);
+    }
+    size_t begin = 0;
+    size_t step = (outNrRows+nrThreads-1)/nrThreads;   // statement 1
+    std::vector<std::thread> threads;
+    threads.reserve(nrThreads);
+    for(size_t th=0; th<nrThreads; ++th) {
+      size_t end = begin+step;    // statement 2
+      threads.emplace_back([begin, end, outNrCols, &a, &b, &rez, &mtx]() {
+        for(size_t i=begin; i<end; ++i {
+          for(size_t j=0; j<outNrCols; ++j) {
+            computeOneElement(a, b, i, j, rez, mtx);
+          }
+        }
+      });
+      begin = end;
+    }
+    for(std::thread& th : threads) {
+      th.join();
+    }
+    return rez;
+ };
+ 
+Identify the issues with this code and how to fix them (fixes marked fix-A are to be considered only as far as the issues marked issue-A are concerned, and similarly for B)
+
+Select one or more:
+
+- **[issue-A] There is essentially no parallelism because no two threads can access the matrices at the same time**
+- [issue-A] The result may be incorrect because of race conditions between the concurrent threads
+- **[fix-A] Remove the mutex mtx and all references to it**
+- [fix-A] Make the output matrix std::vector<std::vector<std::atomic>>
+- [issue-B] There are elements of the output matrix that are computed twice
+- [issue-B] There are elements of the output matrix that are not computed
+- **[issue-B] The program will attempt to access non-existent elements**
+- [fix-B] In statement 1 put step = outNrRows/nrThreads
+- **[fix-B] After statement 2 add if(end>a.size()) end=a.size()**
+- [fix-B] In statement 1 put step = outNrRows/nrThreads and after statement 2 add if(end>a.size()) end=a.size()
+
 # Merge Sort
 Consider the following excerpt from a program that is supposed to merge-sort a vector. The function **worker()** is called in all processes except process 0, the function mergeSort() is called from process 0 (and from the places described in this excerpt), the function mergeSortLocal() sorts the specified vector and the function mergeParts() merges two sorted adjacent vectors, given the pointer to the first element, the total lengthand the length of the first vector.
 
