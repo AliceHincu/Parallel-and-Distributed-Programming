@@ -13,3 +13,6 @@ Other repos:
 
 Answers to grids: (in progress...)
 - https://github.com/AliceHincu/Parallel-and-Distributed-Programming/blob/main/exams-and-solutions/Grile.md
+
+Exams:
+- https://github.com/AliceHincu/Parallel-and-Distributed-Programming/tree/main/exams-and-solutions
