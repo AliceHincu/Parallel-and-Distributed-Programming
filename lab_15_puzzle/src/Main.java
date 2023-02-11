@@ -26,6 +26,24 @@ public class Main {
             executorService.shutdownNow();
         }
     }
+    public boolean isSolvable(int[][] puzzle)
+    {
+        int parity = 0;
+        int gridWidth = (int) Math.sqrt(puzzle.length);
+        int row = 0; // the current row we are on
+        int blankRow = 0; // the row with the blank tile
+
+        if (gridWidth % 2 == 0) { // even grid
+            if (blankRow % 2 == 0) { // blank on odd row; counting from bottom
+                return parity % 2 == 0;
+            } else { // blank on even row; counting from bottom
+                return parity % 2 != 0;
+            }
+        } else { // odd grid
+            return parity % 2 == 0;
+        }
+    }
+
 
     /**
      *
@@ -140,4 +158,6 @@ public class Main {
 
         return null;
     }
+
+
 }
