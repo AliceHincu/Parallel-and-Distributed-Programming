@@ -10,3 +10,6 @@ Parallel problems solved using mpi:
 
 Other repos:
 - https://github.com/rusucosmin/courses/tree/master/ubb/pdp/exam
+
+Answers to grids: (in progress...)
+- https://github.com/AliceHincu/Parallel-and-Distributed-Programming/blob/main/exams-and-solutions/Grile.md
