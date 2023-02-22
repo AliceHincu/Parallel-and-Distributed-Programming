@@ -203,6 +203,48 @@ Which of the following issues are present if the output degree plus one is not a
     }
 	```
 
+# 2023-5 -> Scalar Product Vector
+```cpp
+int product(int nrProc, std::vector<int> const& p, std::vector<int> const& q) {
+	int chunkSize = p.size() / nrProc;
+	MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	std::vector<int> partResults(nrProc);
+	partProd(chunkSize, p.data(), q.data(), partResults.data());
+	int sum = 0;
+	for(int const& v: partResults) sum += v;
+	return sum;
+}
+
+void worker(int myId, int nrProc) {
+	int chunkSize;
+	MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	partProd(chunkSize, nullptr, nullptr, nullptr);
+}
+
+void partProd(int chunkSize, int const* p, int const* q, int* r) {
+	std::vector<int> pp(chunkSize);
+	std::vector<int> qq(chunkSize);
+	MPI_Scatter(p, chunkSize, MPI_INT, pp.data(), chunkSize, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Scatter(q, chunkSize, MPI_INT, qq.data(), chunkSize, MPI_INT, 0, MPI_COMM_WORLD);
+	int sum = 0;
+	for(int i=0; i<chunkSize; ++i) {
+		sum += pp[i]*qq[i];
+	}
+	MPI_Gather(r, 1, MPI_INT, &sum, 1, MPI_INT, 0, MPI_COMM_WORLD);
+}
+```
+
+Which of the following issues are present if the input size plus one is not a multiple of the number of MPI processes? Describe the changes needed to solve them.
+- A: the application can have memory corruption.
+- B: the application can deadlock.
+- C: **some worker processes are not used.**
+- D: some terms are added twice.
+- E: some terms are not added at all.
+- F: the scalar product is incorrectly computed in some other way.
+
+# Solution
+- C: if there is not divisible, there will be some leftover elements that cannot be evenly distributed to all worker processes. As a result, some worker processes will not receive any elements to process, making them useless. To solve this issue, we need to distribute the leftover elements among the worker processes as well. One way to do this is to use MPI_Scatterv instead of MPI_Scatter.
+
 # MPI Theory
 MPI has a number of different "send modes". These represent different choices of buffering (where is the data kept until it is received) and synchronization (when does a send complete). In the following, I use "send buffer" for the user-provided buffer to send.
 - **MPI_Send** -> will not return until you can use the send buffer. It may or may not block (it is allowed to buffer, either on the sender or receiver side, or to wait for the matching receive).
@@ -212,3 +254,28 @@ MPI_Ssend
 Blocking communication is done using MPI_Send() and MPI_Recv(). These functions do not return (i.e., they block) until the communication is finished. This means that **MPI_Send() returns when the buffer passed can be reused**, either because MPI saved it somewhere, or because it has been received by the destination. Similarly, **MPI_Recv() returns when the receive buffer has been filled with valid data**.
 
 In contrast, non-blocking communication is done using MPI_Isend() and MPI_Irecv(). These function return immediately (i.e., they do not block) even if the communication is not finished yet. You must call MPI_Wait() or MPI_Test() to see whether the communication has finished.
+
+MPI_Bcast() sends the same piece of data to everyone, while MPI_Scatter() sends each process a part of the input array. 
+MPI_Gather() gathers together values from a group of processes.
+
+Scatter -> https://www.mpich.org/static/docs/v3.1/www3/MPI_Scatter.html
+```
+MPI_Scatter(p, chunkSize, MPI_INT, pp.data(), chunkSize, MPI_INT, 0, MPI_COMM_WORLD); // sends p, receives data in pp
+int MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+               void *recvbuf, int recvcount, MPI_Datatype recvtype, int root,
+               MPI_Comm comm)
+
+MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+int MPI_Bcast( void *buffer, int count, MPI_Datatype datatype, int root, 
+               MPI_Comm comm )
+
+MPI_Gather(r, 1, MPI_INT, &sum, 1, MPI_INT, 0, MPI_COMM_WORLD);
+int MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+               void *recvbuf, int recvcount, MPI_Datatype recvtype,
+               int root, MPI_Comm comm)
+
+```
+
+![image](https://user-images.githubusercontent.com/53339016/220750330-2578299d-2905-48f2-9e73-5b467334e24a.png)
+![image](https://user-images.githubusercontent.com/53339016/220751335-c9cb5bc8-1add-4bc3-bd10-c067c2439208.png)
+
