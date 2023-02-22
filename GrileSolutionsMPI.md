@@ -36,11 +36,6 @@ Which one of the following issues are present? Describe the changes needed to so
 - **D. the application can deadlock if the number of processes is not a power of 2.**
 
 ## Solution
-Let’s take an example:
-- v=[1,2,3,…,11]
-- nrProc=5 (0,1,2,3,4)
-
-Ans:
 - A: The application can deadlock if the length of the vector is smaller than the number of MPI processes because at least one process will wait to receive data, and **since MPI_Recv() returns when the receive buffer has been filled with valid data, it will be a blocking call => DEADLOCK.**
 	- Solution: we can merge locally if the nr of elements is smaller than the number of processes: replace dataSize <= 1 with dataSize < nrProc.
 - C + D: If the number of processes is odd at a division, the last process does not receive work and remains blocked in MPI_RECV (). (Answered by prof!!)
@@ -84,11 +79,6 @@ Which one of the following issues are present? Describe the changes needed to so
 - D. **the application can deadlock if the number of processes is not a power of 2**.
 
 ## Solution
-Let’s take an example:
-v=[1,2,3,…,11]
-nrProc=5
-
-Ans:
 - B: When the size of the input data is not a power of 2, the division is not even, resulting in a part of the data not being sorted properly. **Specifically, if the size of the input data is an odd number, the last element of the input array will not be sorted properly**. 
  	- Solution: we can modify the mergeSort function to mergeSort(v+halfSize, **dataSize-halfSize**, myId, nrProc-halfProc);
 - C + D: If the number of processes is odd at a division, the last process does not receive work and remains blocked in MPI_RECV (). (Answered by prof!!)
@@ -98,8 +88,120 @@ Ans:
 ``` cpp
 void product(int nrProc, std::vector<int> const& p, std::vector<int> const& q, std::vector<int> const&r) {
 	int sizes[2]; sizes[0] = p.size(); sizes[1] = q.size();
+	MPI_BCast(sizes, 2, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_BCast(const_cast<int*>(p.data()), p.size(), MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_BCast(const_cast<int*>(q.data()), q.size(), MPI_INT, 0, MPI_COMM_WORLD);
+	std::vector<int> partRes;
+	partProd(0, nrProc, p, q, partRes);
+	r.resize(p.size()+q.size()-1);
+	MPI_Gather(partRes.data(), partRes.size(), MPI_INT, r.data(), partRes.size(), MPI_INT, 0, MPI_COMM_WORLD);
+}
+
+void worker(int myId, int nrProc) {
+	int sizes[2];
+	MPI_BCast(sizes, 2, MPI_INT, 0, MPI_COMM_WORLD);
+	std::vector<int> p(sizes[0]);
+	std::vector<int> p(sizes[1]);
+	MPI_BCast(p.data(), p.size(), MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_BCast(q.data(), q.size(), MPI_INT, 0, MPI_COMM_WORLD);
+	std::vector<int> r;
+	partProd(myId, nrProc, p, q, r);
+	MPI_Gather(r.data(), r.size(), MPI_INT, nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
+}
+
+void partProd(int myId, int nrProc,  std::vector<int> const& p, std::vector<int> const& q, std::vector<int> const&r) {
+	int chunkSize = (p.size()+q.size()-1) / nrProc;
+	r.resize(chunkSize, 0);
+	size_t baseIdx = chunkSize * myId;
+	for(int i=0; i<chunkSize; ++i) {
+		for(int j=0; j<=i+baseIdx; ++j) {
+			if(j<p.size() && i+baseIdx-j<q.size()) {
+				r[i] += p[j]*q[i+baseIdx-j];
+			}
+		}
+	}
 }
 ```
+
+Which of the following issues are present if the output degree plus one is not a multiple of the number of MPI processes? Describe the changes needed to solve them.
+- A: the application can have memory corruption.
+- B: the application can deadlock.
+- C: some worker processes are not used.
+- D: some coefficients are computed twice.
+- **E: some coefficients are not computed at all**.
+- F: some coefficients are computed incorrectly.
+
+## Solution
+- E: This is because the partProd function divides the work among the MPI processes by splitting the output vector into chunks of equal size. If the total number of coefficients to compute is not evenly divisible by the number of processes, then some coefficients will not be computed by any process.
+ 	- Solution: when we are at the last process, resize r to fit all the remaining coefficients:
+ 	```cpp
+	int totalSize = p.size() + q.size() - 1;
+    int chunkSize = totalSize / nrProc;
+ 	int remainingSize = totalSize - chunkSize * nrProc;
+	if (myId == nrProc - 1) {
+        chunkSize += remainingSize;
+    }
+	```
+
+
+# 2023-4
+``` cpp
+void product(int nrProc, std::vector<int> const& p, std::vector<int> const& q, std::vector<int> const&r) {
+	int sizes[2]; sizes[0] = p.size(); sizes[1] = q.size();
+	MPI_BCast(sizes, 2, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_BCast(const_cast<int*>(p.data()), p.size(), MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_BCast(const_cast<int*>(q.data()), q.size(), MPI_INT, 0, MPI_COMM_WORLD);
+	std::vector<int> partRes;
+	partProd(0, nrProc, p, q, partRes);
+	r.resize(p.size()+q.size()-1);
+	MPI_Gather(partRes.data(), partRes.size(), MPI_INT, r.data(), partRes.size(), MPI_INT, 0, MPI_COMM_WORLD);
+}
+
+void worker(int myId, int nrProc) {
+	imetadata[0] = nrProc;
+	MPI_BCast(sizes, 2, MPI_INT, 0, MPI_COMM_WORLD);
+	std::vector<int> p(sizes[0]);
+	std::vector<int> q(sizes[1]);
+	MPI_BCast(p.data(), p.size(), MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_BCast(q.data(), q.size(), MPI_INT, 0, MPI_COMM_WORLD);
+	std::vector<int> r;
+	partProd(myId, nrProc, p, q, r);
+	MPI_Gather(r.data(), r.size(), MPI_INT, nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
+}
+
+void partProd(int myId, int nrProc,  std::vector<int> const& p, std::vector<int> const& q, std::vector<int> const&r) {
+	int chunkSize = (p.size()+q.size()-1+nrProc-1) / nrProc;
+	size_t baseIdx = chunkSize * myId;
+	r.resize(chunkSize, 0);
+	for(int i=0; i<chunkSize; ++i) {
+		for(int j=0; j<=i+baseIdx; ++j) {
+			if(j<p.size() && i+baseIdx-j<q.size()) {
+				r[i] += p[j]*q[i+baseIdx-j];
+			}
+		}
+	}
+}
+```
+
+Which of the following issues are present if the output degree plus one is not a multiple of the number of MPI processes? Describe the changes needed to solve them.
+- A: **the application can have memory corruption**.
+- B: the application can deadlock.
+- C: some worker processes are not used.
+- D: some coefficients are computed twice.
+- E: some coefficients are not computed at all.
+- F: some coefficients are computed incorrectly.
+
+## Solution
+- A: When chunkSize is calculated, it is always rounded up => it leads to MPI_Gather() to "overfill" the allocated destination vector, which leads to memory corruption. 
+ 	- Solution: when we are at the last process, resize r to fit all the remaining coefficients:
+ 	```cpp
+	int totalSize = p.size() + q.size() - 1;
+    int chunkSize = totalSize / nrProc;
+ 	int remainingSize = totalSize - chunkSize * nrProc;
+	if (myId == nrProc - 1) {
+        chunkSize += remainingSize;
+    }
+	```
 
 # MPI Theory
 MPI has a number of different "send modes". These represent different choices of buffering (where is the data kept until it is received) and synchronization (when does a send complete). In the following, I use "send buffer" for the user-provided buffer to send.
