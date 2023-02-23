@@ -204,6 +204,7 @@ Which of the following issues are present if the output degree plus one is not a
 	```
 
 # 2023-5 -> Scalar Product Vector
+Consider the following excerpt from a program that is supposed to compute the scalar product of two vectors of the same length. The function ```worker()``` is called in all processes except process 0, the function ```product()``` is called from process 0.
 ```cpp
 int product(int nrProc, std::vector<int> const& p, std::vector<int> const& q) {
 	int chunkSize = p.size() / nrProc;
@@ -237,13 +238,76 @@ void partProd(int chunkSize, int const* p, int const* q, int* r) {
 Which of the following issues are present if the input size plus one is not a multiple of the number of MPI processes? Describe the changes needed to solve them.
 - A: the application can have memory corruption.
 - B: the application can deadlock.
-- C: **some worker processes are not used.**
+- C: some worker processes are not used.
 - D: some terms are added twice.
-- E: some terms are not added at all.
+- E: **some terms are not added at all**.
 - F: the scalar product is incorrectly computed in some other way.
 
 # Solution
-- C: if there is not divisible, there will be some leftover elements that cannot be evenly distributed to all worker processes. As a result, some worker processes will not receive any elements to process, making them useless. To solve this issue, we need to distribute the leftover elements among the worker processes as well. One way to do this is to use MPI_Scatterv instead of MPI_Scatter.
+- E: if there is not divisible, there will be some leftover elements that cannot be evenly distributed to all worker processes, since the chunksize is rounded down. As a result, some elements will not be processed at all, so their contribution to the final result will be missing. 
+	- Solution: to solve this issue, we need to distribute the leftover elements among the worker processes as well. One way to do this is to use MPI_Scatterv instead of MPI_Scatter and to "manually" divide the blocks among the processes.
+	``` cpp
+	int sendcounts[nrProc]; // the array with the number of elements that each process will send
+    int displs[nrProc];  // the array with the displacements
+    int res = p.size() % nrProc; // the number of extra iterations
+	// calculate the size and the displacement of each process
+	int increment = 0;
+    for(int processID = 0; processID < nrProc; processID++){
+       displs[processID] = increment;
+       sendcounts[processID] = (processID + 1 <= res) ? chunkSize + 1 : chunkSize; // assign the extra iterations
+       increment += sendcounts[processID];
+    }
+    int process_size = sendcounts[myId];
+    int local_numbers[process_size];
+    MPI_Scatterv(p.data(), sendcounts, displs, MPI_INT, pp, process_size, MPI_INT, 0, MPI_COMM_WORLD); 
+	```
+
+# 2023-6 -> Scalar Product Vector
+Consider the following excerpt from a program that is supposed to compute the scalar product of two vectors of the same length. The function ```worker()``` is called in all processes except process 0, the function ```product()``` is called from process 0.
+```cpp
+int product(int nrProc, std::vector<int> const& p, std::vector<int> const& q) {
+	int chunkSize = (p.size() + nrProc -1) / nrProc;
+	std::vector<int> partResults(nrProc);
+	MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	partProd(chunkSize, p.data(), q.data(), partResults.data());
+	int sum = 0;
+	for(int const& v: partResults) sum += v;
+	return sum;
+}
+
+void worker(int myId, int nrProc) {
+	int chunkSize;
+	MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	partProd(chunkSize, nullptr, nullptr, nullptr);
+}
+
+void partProd(int chunkSize, int const* p, int const* q, int* r) {
+	std::vector<int> pp(chunkSize);
+	std::vector<int> qq(chunkSize);
+	MPI_Scatter(p, chunkSize, MPI_INT, pp.data(), chunkSize, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Scatter(q, chunkSize, MPI_INT, qq.data(), chunkSize, MPI_INT, 0, MPI_COMM_WORLD);
+	int sum = 0;
+	for(int i=0; i<chunkSize; ++i) {
+		sum += pp[i]*qq[i];
+	}
+	MPI_Gather(r, 1, MPI_INT, &sum, 1, MPI_INT, 0, MPI_COMM_WORLD);
+}
+```
+
+Which of the following issues are present if the input size plus one is not a multiple of the number of MPI processes? Describe the changes needed to solve them.
+- A: the application can have memory corruption.
+- B: the application can deadlock.
+- C: some worker processes are not used.
+- D: some terms are added twice.
+- E: some terms are not added at all.
+- F: **the scalar product is incorrectly computed in some other way.**
+
+# Solution
+- F: Because the chunksize is rounded up, the scalar product is incorrectly computed... ceiling division has the problem that the last processor overruns the array, or ends up with less to do than the others. 
+	- Solution: add padding to the input vectors so that their size becomes a multiple of the number of MPI processes. This can be done by adding zeros to the end of the vectors. The padding can be removed from the final result by subtracting the contribution of the padded zeros
+	```cpp
+	v.resize(((v.size()+nrProcs-1)/nrProcs)*nrProcs, 0);
+	```
 
 # MPI Theory
 MPI has a number of different "send modes". These represent different choices of buffering (where is the data kept until it is received) and synchronization (when does a send complete). In the following, I use "send buffer" for the user-provided buffer to send.
@@ -260,11 +324,6 @@ MPI_Gather() gathers together values from a group of processes.
 
 Scatter -> https://www.mpich.org/static/docs/v3.1/www3/MPI_Scatter.html
 ```
-MPI_Scatter(p, chunkSize, MPI_INT, pp.data(), chunkSize, MPI_INT, 0, MPI_COMM_WORLD); // sends p, receives data in pp
-int MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
-               void *recvbuf, int recvcount, MPI_Datatype recvtype, int root,
-               MPI_Comm comm)
-
 MPI_Bcast(&chunkSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
 int MPI_Bcast( void *buffer, int count, MPI_Datatype datatype, int root, 
                MPI_Comm comm )
@@ -273,6 +332,16 @@ MPI_Gather(r, 1, MPI_INT, &sum, 1, MPI_INT, 0, MPI_COMM_WORLD);
 int MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                void *recvbuf, int recvcount, MPI_Datatype recvtype,
                int root, MPI_Comm comm)
+			   
+MPI_Scatter(p, chunkSize, MPI_INT, pp.data(), chunkSize, MPI_INT, 0, MPI_COMM_WORLD); // sends p, receives data in pp
+int MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+               void *recvbuf, int recvcount, MPI_Datatype recvtype, int root,
+               MPI_Comm comm)
+
+int MPI_Scatterv(const void *sendbuf, const int *sendcounts, const int *displs,
+                 MPI_Datatype sendtype, void *recvbuf, int recvcount,
+                 MPI_Datatype recvtype,
+                 int root, MPI_Comm comm)
 
 ```
 
