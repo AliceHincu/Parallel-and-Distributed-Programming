@@ -1,3 +1,4 @@
+by me & [alexandra](https://github.com/alexandra-murariu)
 ##### Table of Contents  
 - [2023-1 -> Merge sort vector I](#2023-1)  
 - [2023-2 -> Merge sort vector II](#2023-2)  
