@@ -67,11 +67,9 @@ public:
 
 Which of the following are true? Give a short explaination.
 - A: [issue] a call to ```dequeue()``` can deadlock if simultaneous with the call to ```enqueue()```;
-    - since ```enqueue()``` is correctly implemented, it doesn't matter if it is called simultaneously with ```dequeue()```. If enqueue acquires the lock first, it's ok...if dequeue, acquires the lock first, it is released on wait (items is empty so it enters the while), then enqueue is done, then wait is notified and dequeue continues.
 - B: **[issue] two simultaneous calls to ```dequeue()``` may deadlock;**
     - Let’s say the first thread removes the last item from the list, and at the same time, the second thread enters the while loop, checking the state of the list before it being emptied by the other thread (as the modification of the list is not guarded by a lock, this is possible). Then, the second thread will forever wait to be notified, which won’t happen until the threads are closed at the end, resulting in a possible deadlock.
 - C: [issue] two simultaneous calls to ```enqueue()``` may deadlock;
-    - ```enqueue()``` is correctly implemented 
 - **D: [issue] two simultaneous calls to ```dequeue()``` may result in corrupted ```items``` list;** 
     - This happens because the lock is not used correspondingly. In this situation, two threads can read the same value and pop it twice, resulting in a corrupted item list.
 - **E: [issue] a call to ```dequeue()``` can result data corruption or undefined behavior if simultaneous with the call ```enqueue()```;**
