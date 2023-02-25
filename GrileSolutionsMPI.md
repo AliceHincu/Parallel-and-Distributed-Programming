@@ -49,7 +49,7 @@ Which one of the following issues are present? Describe the changes needed to so
 
 ## Solution
 - A: The application can deadlock if the length of the vector is smaller than the number of MPI processes because at least one process will wait to receive data, and **since MPI_Recv() returns when the receive buffer has been filled with valid data, it will be a blocking call => DEADLOCK.**
-	- Solution: we can merge locally if the nr of elements is smaller than the number of processes: replace dataSize <= 1 with dataSize < nrProc.
+	- Solution: delete dataSize <= 1 to be able to send an empty list to processes.
 - C + D: If the number of processes is odd at a division, the last process does not receive work and remains blocked in MPI_RECV (). (Answered by prof!!)
  	- Solution: when splitting the work between two processes, each process should be associated with a group. If child = myId + halfProc, then the number of processes available to the child must be (nrProc - nrProc/2), and the parent keeps nrProc/2.
 
