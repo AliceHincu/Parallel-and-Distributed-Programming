@@ -85,7 +85,7 @@ void worker(int myId) {
 }
 ``` 
 
-Which one of the following issues are present? Describe the changes needed to solve them? (A, C, D)
+Which one of the following issues are present? Describe the changes needed to solve them?
 - A. the application can deadlock if the length of the vector is smaller than the number of MPI processes.
 - B. **the application can produce a wrong result if the input vector size is not a power of 2**.
 - C. **some worker processes are not used if the number of processes is not a power of 2**.
