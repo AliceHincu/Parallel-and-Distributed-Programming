@@ -1,3 +1,5 @@
+by [alexandra](https://github.com/alexandra-murariu)
+
 # Theory
 - The condition_variable class is a synchronization primitive used with a std::mutex to block one or more threads until another thread both modifies a shared variable (the condition) and notifies the condition_variable.
 
