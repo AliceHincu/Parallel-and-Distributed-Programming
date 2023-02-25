@@ -315,6 +315,59 @@ Which of the following are true? Give a short explanation.
 - I: [fix] a possible fix is to remove lines 19 and 21;
 - J: [fix] a possible fix is to move the content of line 12 between lines 9 and 10 and to remove line 21;
 
+# 2022-3
+Consider the following code for enqueueing a continuation on a future (the `set()` function is guaranteed to be called exactly once by the user code)
+``` cpp
+template<typename T>
+class Future{
+	list<function<void(T)>> continuations;
+	T val;
+	bool hasValue;
+	mutex mtx;
+public:
+	Future() :hasValue(false){}
+	void set(T v){
+		hasValue = true;
+		val = v;
+		unique_lock<mutex> lck(mtx);
+		for(function<void(T)>& f : continuations){
+			f(v);
+		}
+		continuations.clear();
+	}
+	void addContinuation(function <void(T)> f){
+		if(hasValue){
+			f(val);
+		} else {
+			unique_lock<mutex> lck(mtx);
+			continuations.push_back(f);
+		}
+	}
+};
+```
+Which of the following are true? Give a short explanation.
+- A: [issue] a call to set() can deadlock if simultaneous with the call to addContinuation();
+- B: [issue] two simultaneous calls to addContinuation() may deadlock;
+- C: [issue] simultaneous calls to addContinuation() may lead to continuations that are executed twice;
+- D: **[issue] two simultaneous calls to addContinuation() may lead to continuations that are never executed;**
+	 ``` cpp
+	We can have the following situation:
+		addContinuation() and set() are executed simultaneously
+		addContinuation() reaches line 21 ( } else { )
+		at the same time, set() reaches its end (line 17)
+		addContinuation() goes on and adds a new f to the list, which will not get executed since set() is done 
+		=> continuation that is never executed
+	```
+
+- E: [issue] simultaneous calls to addContinuation() and set() may lead to continuations that are executed twice;
+- F: [fix] a possible fix is to move the content of the line 12 to between lines 9 and 10;
+- G: [fix] a possible fix is to move the content of the line 12 to between lines 13 and 14;
+- H: [fix] a possible fix is to move the content of the line 22 to between lines 18 and 19;
+- I: [fix] a possible fix is to move the both the content of line 12 to between lines 9 and 10 and the content of line 22 to between lines 13 and 14;
+- **J: [fix] a possible fix is to move the both the content of line 12 to between lines 13 and 14 and the content of line 22 to between lines 18 and 19;**
+	- If we can consider both F and H at the same time, together, then this would be correct: We need to make setting or checking of hasValue atomic with the corresponding operation on the continuations vector. So, we need to lock the
+mutex before setting or checking hasValue
+
 # 2023-7
 Consider the following code for a fixed size thread pool (the close() function is guaranteed to be called exactly once and no enqueuees will happen then or afterwards):
 ``` cpp
